@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webping
+  labels:
+    app: webping
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webping
+  template:
+    metadata:
+      labels:
+        app: webping
+    spec:
+      containers:
+      - name: webping
+        image: gcr.io/liveff-staging/webping
+        ports:
+        - containerPort: 8080
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: "app"
+                operator: In
+                values:
+                - webping
+            topologyKey: "kubernetes.io/hostname"
+            
+--- 
+apiVersion: v1
+kind: Service
+metadata:
+  name: webping
+  labels:
+    run: webping
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+  selector:
+    run: webping
